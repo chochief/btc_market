@@ -1,10 +1,13 @@
 <template lang="pug">
   form.form
     h1.title Limit order
-    span.lead USD: {{ usd }}
-    span.lead BTC: {{ btc }}
-    span.lead Last price: {{ lastPrice }}
-    span.lead Commission fee ({{ commissionFee }}%): {{ commissionTotal }}
+    .block
+      span.lead USD: {{ usd }}
+      span.lead BTC: {{ btc }}
+      span.lead Last price: {{ lastPrice }}
+    .block
+      span.text Min amount: {{ minAmount }}
+      span.text Commission fee: {{ commissionFee }}%
     hr.hr
     input(
       type="text"
@@ -12,33 +15,47 @@
       @input="onPriceChange"
       :style="priceErrStyle"
     )
-    p.label {{ priceLabel }}
+    p.label {{ labels.price }}
     input(
       type="text"
       v-model="amount"
       @input="onAmountChange"
       :style="amountErrStyle"
     )
-    p.label {{ amountLabel }}
+    p.label {{ labels.amount }}
     hr.hr
-    button.btn Buy
-    button.btn Sell
+    button.btn(
+      :style="buyWarningStyle"
+      @click="onBuyClick"
+    ) Buy
+    button.btn(
+      :style="sellWarningStyle"
+      @click="onSellClick"
+    ) Sell
 </template>
 
 <script>
+const PRICE_LABEL = 'Price (USD)'
+const AMOUNT_LABEL = 'Amount (BTC)'
+
 export default {
   data () {
     return {
-      usd: 500,
+      usd: 100000,
       btc: 200,
-      lastPrice: 15,
-      price: 14,
+      lastPrice: 6565.9,
+      price: 6565.95,
       amount: 100,
-      priceLabel: 'Price',
-      priceErr: false,
-      amountLabel: 'Amount',
-      amountErr: false,
-      commissionFee: 0,
+      minAmount: 0.001,
+      labels: {
+        price: PRICE_LABEL,
+        amount: AMOUNT_LABEL
+      },
+      errors: {
+        price: false,
+        amount: false
+      },
+      commissionFee: 0.15,
       commissionTotal: 0,
       valid: false
     }
@@ -48,57 +65,87 @@ export default {
       return !this.valid
     },
     priceErrStyle () {
-      return this.priceErr ? { color: 'red' } : {}
+      return this.errors.price ? { color: 'red' } : {}
     },
     amountErrStyle () {
-      return this.priceErr ? { color: 'red' } : {}
+      return this.errors.amount ? { color: 'red' } : {}
+    },
+    buyWarningStyle () {
+      return (this.price > this.lastPrice) ? { 'background-color': 'red' } : { 'background-color': '#335185' }
+    },
+    sellWarningStyle () {
+      return (this.price < this.lastPrice) ? { 'background-color': 'red' } : { 'background-color': '#335185' }
+    },
+    newPriceMinimal () {
+      return this.lastPrice - this.lastPrice / 10
+    },
+    newPriceMaximal () {
+      return this.lastPrice + this.lastPrice / 10
     }
   },
   methods: {
     onPriceChange () {
       let count = 0
       if (!isFloat(this.price)) {
-        this.priceLabel = 'Price must be a float number'
+        this.labels.price = 'Price must be a float number'
+        count++
+      }
+      const price = +this.price
+      if (price > this.newPriceMaximal) {
+        this.labels.price = `The maximum price - ${this.newPriceMaximal} (+10% from last price ${this.lastPrice})`
+        count++
+      }
+      if (price < this.newPriceMinimal) {
+        this.labels.price = `The minimum price - ${this.newPriceMinimal} (-10% from last price ${this.lastPrice})`
         count++
       }
       //
       if (count === 0) {
-        this.priceLabel = 'Price'
-        this.priceErr = false
+        this.labels.price = PRICE_LABEL
+        this.errors.price = false
       } else {
-        this.priceErr = true
+        this.errors.price = true
       }
     },
     onAmountChange () {
       let count = 0
-      if (!isNumber(this.amount)) {
-        this.amountLabel = 'Amount must be a number'
+      if (!isFloat(this.amount)) {
+        this.labels.amount = 'Amount must be a float number'
+        count++
+      }
+      if (+this.amount < this.minAmount) {
+        this.labels.amount = `Amount must be greater than ${this.minAmount}`
         count++
       }
       //
       if (count === 0) {
-        this.amountLabel = 'Amount'
-        this.amountErr = false
+        this.labels.amount = AMOUNT_LABEL
+        this.errors.amount = false
       } else {
-        this.amountErr = true
+        this.errors.amount = true
       }
     },
-    checkForm (e) {
+    onBuyClick (e) {
       e.preventDefault()
-      if (!isNumber(this.amount)) {
-        this.amountLabel = 'Amount must be a number'
-      }
+      console.log('buy')
+      e.target.blur()
+    },
+    onSellClick (e) {
+      e.preventDefault()
+      console.log('sell')
+      e.target.blur()
     }
   }
 }
 
-function isNumber (str) {
-  const r = /^\d+$/
-  return r.test(str) && str[0] !== '0'
-}
+// function isNumber (str) {
+//   const r = /^\d+$/
+//   return r.test(str) && str[0] !== '0'
+// }
 
 function isFloat (str) {
-  const r = /^[+-]?\d+(\.\d+)?$/
+  // const r = /^[+-]?\d+(\.\d+)?$/
+  const r = /^\d+(\.\d+)?$/
   return r.test(str) && ((str[0] !== '0') || (str[1] !== '0' && +str > 0 && +str < 1))
 }
 </script>
@@ -126,23 +173,23 @@ function isFloat (str) {
     margin: 20px 0;
   }
   & .text {
-    margin-bottom: 16px;
+    margin: 0 16px 16px 0;
   }
   & .btn {
     position: relative;
     z-index: 1;
     margin-right: 10px;
-    padding: 12px 16px;
+    padding: 12px 50px;
     border-radius: 4px;
     cursor: pointer;
     background-color: #335185;
     color: white;
     outline: none;
     border: 0;
-    font-size: 22px;
-    transition: all 0.5s ease;
+    font-size: 33px;
+    transition: top 0.5s ease;
     &:hover {
-      color: #fbce2a;
+      box-shadow: 0 1px 0 1px #000;
     }
     &:focus {
       top: 2px;
@@ -174,5 +221,9 @@ textarea {
   margin-bottom: 16px;
   padding: 6px 21px 0;
   text-align: center;
+}
+
+.block {
+  margin: 16px 0 0;
 }
 </style>
