@@ -24,6 +24,26 @@
     )
     p.label {{ labels.amount }}
     hr.hr
+    p.text
+      span Total:
+      sup  USD
+      span {{ price }} * {{ amount }} +
+      sup  USD
+      span {{ fee }}(Commission fee) =
+      sup  USD
+      span {{ total }}
+    p.lead
+      span If you buy:
+      sup  USD
+      span {{ afterBuyUsdWill }}
+      sup  BTC
+      span {{ afterBuyBtcWill }}
+    p.lead
+      span If you sell:
+      sup  USD
+      span {{ afterSellUsdWill }}
+      sup  BTC
+      span {{ afterSellBtcWill }}
     button.btn(
       :style="buyWarningStyle"
       @click="onBuyClick"
@@ -81,10 +101,39 @@ export default {
       return (this.price < this.lastPrice) ? { 'background-color': 'red' } : { 'background-color': '#335185' }
     },
     newPriceMinimal () {
-      return this.lastPrice - this.lastPrice / 10
+      return roundTo(6, this.lastPrice - this.lastPrice / 10)
     },
     newPriceMaximal () {
-      return this.lastPrice + this.lastPrice / 10
+      return roundTo(6, this.lastPrice + this.lastPrice / 10)
+    },
+    sum () {
+      const price = +this.price
+      const amount = +this.amount
+      return roundTo(6, price * amount)
+    },
+    fee () {
+      return roundTo(6, this.sum / 100 * 0.15)
+    },
+    total () {
+      return this.sum + this.fee
+    },
+    afterBuyUsdWill () {
+      const usd = +this.usd
+      return usd - this.total
+    },
+    afterBuyBtcWill () {
+      const btc = +this.btc
+      const amount = +this.amount
+      return btc + amount
+    },
+    afterSellUsdWill () {
+      const usd = +this.usd
+      return usd + this.total
+    },
+    afterSellBtcWill () {
+      const btc = +this.btc
+      const amount = +this.amount
+      return btc - amount
     }
   },
   methods: {
@@ -146,6 +195,11 @@ function isFloat (str) {
   // const r = /^[+-]?\d+(\.\d+)?$/
   const r = /^\d+(\.\d+)?$/
   return r.test(str) && ((str[0] !== '0') || (str[1] !== '0' && +str > 0 && +str < 1))
+}
+
+function roundTo (digs, num) {
+  const a = Math.pow(10, digs)
+  return Math.round(num * a) / a
 }
 </script>
 
