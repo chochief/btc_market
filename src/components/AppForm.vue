@@ -65,6 +65,27 @@
       @click="onSellClick"
       :disabled="isDisabled || noSell"
     ) Sell
+    h1.title My orders
+    table
+      tr.lead(
+        v-for="row in reverseHistory"
+      )
+        td
+          span {{ row.date.toLocaleString() }}
+        td
+          sup  USD
+          span {{ row.usd }}
+        td
+          sup  BTC
+          span {{ row.btc }}
+        td
+          span {{ row.type }}
+        td
+          sup  price
+          span {{ row.price }}
+        td
+          sup  amount
+          span {{ row.amount }}
 </template>
 
 <script>
@@ -89,7 +110,8 @@ export default {
         amount: false
       },
       commissionFee: 0.15,
-      commissionTotal: 0
+      commissionTotal: 0,
+      history: []
     }
   },
   computed: {
@@ -148,6 +170,9 @@ export default {
     },
     noSell () {
       return this.afterSellBtcWill < 0
+    },
+    reverseHistory () {
+      return this.history.slice().reverse()
     }
   },
   methods: {
@@ -194,12 +219,32 @@ export default {
     },
     onBuyClick (e) {
       e.preventDefault()
-      console.log('buy')
+      this.history.push({
+        date: new Date(),
+        type: 'BUY',
+        price: this.price,
+        amount: this.amount,
+        usd: this.afterBuyUsdWill,
+        btc: this.afterBuyBtcWill
+      })
+      this.lastPrice = this.price
+      this.usd = this.afterBuyUsdWill
+      this.btc = this.afterBuyBtcWill
       e.target.blur()
     },
     onSellClick (e) {
       e.preventDefault()
-      console.log('sell')
+      this.history.push({
+        date: new Date(),
+        type: 'SELL',
+        price: this.price,
+        amount: this.amount,
+        usd: this.afterSellUsdWill,
+        btc: this.afterSellBtcWill
+      })
+      this.lastPrice = this.price
+      this.usd = this.afterSellUsdWill
+      this.btc = this.afterSellBtcWill
       e.target.blur()
     }
   }
@@ -299,7 +344,7 @@ textarea {
 }
 
 span {
-  margin: 0 5px;
+  margin: 0 10px 0 5px;
 }
 
 .hidden {
