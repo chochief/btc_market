@@ -27,13 +27,17 @@
     p.text(
       :class="{ hidden: isDisabled }"
     )
-      span Total:
+      span Sum:
       sup  USD
-      span {{ price }} * {{ amount }} +
+      span {{ price }} * {{ amount }} =
       sup  USD
-      span {{ fee }}(Commission fee) =
+      span {{ sum }}
+    p.text(
+      :class="{ hidden: isDisabled }"
+    )
+      span Commission fee:
       sup  USD
-      span {{ total }}
+      span {{ fee }}
     p.lead(
       :class="{ notAvailable: noBuy, hidden: isDisabled }"
     )
@@ -94,12 +98,6 @@ export default {
     isDisabled () {
       return !this.valid
     },
-    noBuy () {
-      return this.usd < this.total
-    },
-    noSell () {
-      return this.btc < this.amount
-    },
     priceErrStyle () {
       return this.errors.price ? { color: 'red' } : {}
     },
@@ -126,26 +124,29 @@ export default {
     fee () {
       return roundTo(6, this.sum / 100 * 0.15)
     },
-    total () {
-      return this.sum + this.fee
-    },
     afterBuyUsdWill () {
       const usd = +this.usd
-      return usd - this.total
+      return roundTo(6, usd - this.sum - this.fee)
     },
     afterBuyBtcWill () {
       const btc = +this.btc
       const amount = +this.amount
-      return btc + amount
+      return roundTo(6, btc + amount)
     },
     afterSellUsdWill () {
       const usd = +this.usd
-      return usd + this.total
+      return roundTo(6, usd + this.sum - this.fee)
     },
     afterSellBtcWill () {
       const btc = +this.btc
       const amount = +this.amount
       return btc - amount
+    },
+    noBuy () {
+      return this.afterBuyUsdWill < 0
+    },
+    noSell () {
+      return this.afterSellBtcWill < 0
     }
   },
   methods: {
