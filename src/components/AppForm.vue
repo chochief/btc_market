@@ -24,7 +24,9 @@
     )
     p.label {{ labels.amount }}
     hr.hr
-    p.text
+    p.text(
+      :class="{ hidden: isDisabled }"
+    )
       span Total:
       sup  USD
       span {{ price }} * {{ amount }} +
@@ -32,13 +34,17 @@
       span {{ fee }}(Commission fee) =
       sup  USD
       span {{ total }}
-    p.lead
+    p.lead(
+      :class="{ notAvailable: noBuy, hidden: isDisabled }"
+    )
       span If you buy:
       sup  USD
       span {{ afterBuyUsdWill }}
       sup  BTC
       span {{ afterBuyBtcWill }}
-    p.lead
+    p.lead(
+      :class="{ notAvailable: noSell, hidden: isDisabled }"
+    )
       span If you sell:
       sup  USD
       span {{ afterSellUsdWill }}
@@ -47,12 +53,12 @@
     button.btn(
       :style="buyWarningStyle"
       @click="onBuyClick"
-      :disabled="isDisabled"
+      :disabled="isDisabled || noBuy"
     ) Buy
     button.btn(
       :style="sellWarningStyle"
       @click="onSellClick"
-      :disabled="isDisabled"
+      :disabled="isDisabled || noSell"
     ) Sell
 </template>
 
@@ -87,6 +93,12 @@ export default {
     },
     isDisabled () {
       return !this.valid
+    },
+    noBuy () {
+      return this.usd < this.total
+    },
+    noSell () {
+      return this.btc < this.amount
     },
     priceErrStyle () {
       return this.errors.price ? { color: 'red' } : {}
@@ -282,5 +294,18 @@ textarea {
 
 .block {
   margin: 16px 0 0;
+}
+
+span {
+  margin: 0 5px;
+}
+
+.hidden {
+  opacity: 0;
+}
+
+.notAvailable {
+  text-decoration-line: line-through;
+  color: rgba(0,0,0,.1);
 }
 </style>
