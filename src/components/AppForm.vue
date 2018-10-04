@@ -54,6 +54,7 @@
       span {{ afterSellUsdWill }}
       sup  BTC
       span {{ afterSellBtcWill }}
+    hr.hr
     button.btn(
       :style="buyWarningStyle"
       @click="onBuyClick"
@@ -255,7 +256,7 @@ function roundTo (digs, num) {
     font-size: 33px;
     transition: top 0.5s ease;
     &:hover {
-      box-shadow: 0 1px 0 1px #000;
+      box-shadow: 0 1px 1px 0 #000;
     }
     &:focus {
       top: 2px;
