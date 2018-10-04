@@ -27,10 +27,12 @@
     button.btn(
       :style="buyWarningStyle"
       @click="onBuyClick"
+      :disabled="isDisabled"
     ) Buy
     button.btn(
       :style="sellWarningStyle"
       @click="onSellClick"
+      :disabled="isDisabled"
     ) Sell
 </template>
 
@@ -56,11 +58,13 @@ export default {
         amount: false
       },
       commissionFee: 0.15,
-      commissionTotal: 0,
-      valid: false
+      commissionTotal: 0
     }
   },
   computed: {
+    valid () {
+      return !this.errors.price && !this.errors.amount
+    },
     isDisabled () {
       return !this.valid
     },
@@ -138,11 +142,6 @@ export default {
   }
 }
 
-// function isNumber (str) {
-//   const r = /^\d+$/
-//   return r.test(str) && str[0] !== '0'
-// }
-
 function isFloat (str) {
   // const r = /^[+-]?\d+(\.\d+)?$/
   const r = /^\d+(\.\d+)?$/
@@ -195,8 +194,12 @@ function isFloat (str) {
       top: 2px;
     }
     &:disabled {
-      background-color: rgba(0,0,0,.1);
+      background-color: rgba(0,0,0,.1) !important;
       cursor: default;
+
+      &:hover {
+        box-shadow: none;
+      }
     }
   }
 }
